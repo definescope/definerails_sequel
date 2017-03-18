@@ -48,7 +48,8 @@ end
 module DefineRails
   module Sequel
 
-    # Done like this, instead of via simple inheritance, because Sequel models apparently get screwed up with subclasses of subclasses! :-(
+    # Done like this, instead of via simple inheritance, because Sequel models
+    # apparently get screwed up with subclasses of subclasses! :-(
     Model = ::Sequel::Model
     # Model = Class.new(::Sequel::Model)
     # class Model
@@ -82,10 +83,28 @@ module DefineRails
               scope: [
                 subclass.i18n_scope,
                 :attributes,
-                subclass.model_name.to_s.downcase.to_sym
+                subclass.model_name.i18n_key.to_s.downcase.to_sym
               ],
               default: attr.to_s.humanize
             )
+          end
+        end
+
+        def def_Model(mod, method_name = nil)
+          model = self
+
+          method_name = :Model unless method_name.present?
+
+          (class << mod; self; end).send(:define_method, method_name) do |source|
+
+            if block_given?
+              the_source = yield(source)
+            else
+              the_source = source
+            end
+
+            model.Model the_source
+
           end
         end
 
